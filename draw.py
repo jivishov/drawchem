@@ -18,19 +18,25 @@ def main():
     if chemical_name:
         # Attempt to convert name to SMILES, otherwise use the input as-is
         smiles = get_smiles_from_name(chemical_name) or chemical_name
-
         st.write("Draw the structure for: ", smiles)
 
     # Ketcher component
-    drawn_smiles, molblock = st_ketcher(height=400)
+    ketcher_output = st_ketcher(height=400)
 
-    if drawn_smiles:
-        st.text("Drawn SMILES string:")
-        st.write(drawn_smiles)
+    if ketcher_output:
+        if isinstance(ketcher_output, tuple):
+            drawn_smiles, molblock = ketcher_output
+        else:
+            drawn_smiles = ketcher_output
+            molblock = None
 
-    if molblock:
-        st.text("MolBlock:")
-        st.write(molblock)
+        if drawn_smiles:
+            st.text("Drawn SMILES string:")
+            st.write(drawn_smiles)
+
+        if molblock:
+            st.text("MolBlock:")
+            st.write(molblock)
 
 if __name__ == "__main__":
     main()
