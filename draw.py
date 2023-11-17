@@ -1,9 +1,8 @@
 import streamlit as st
 import pubchempy as pcp
-from rdkit import Chem
-from rdkit.Chem import Draw
+import requests
 from PIL import Image
-import io
+from io import BytesIO
 
 def name_to_smiles(name):
     try:
@@ -12,9 +11,13 @@ def name_to_smiles(name):
     except:
         return None
 
-def draw_molecule(smiles):
-    molecule = Chem.MolFromSmiles(smiles)
-    return Draw.MolToImage(molecule)
+def smiles_to_image(smiles, width=300, height=300):
+    url = f"https://cactus.nci.nih.gov/chemical/structure/{smiles}/image"
+    params = {'width': width, 'height': height}
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        return Image.open(BytesIO(response.content))
+    return None
 
 def main():
     st.title('Chemical Structure Drawer from Name')
@@ -24,12 +27,11 @@ def main():
     if chemical_name:
         smiles_string = name_to_smiles(chemical_name)
         if smiles_string:
-            image = draw_molecule(smiles_string)
-            # Convert PIL image to bytes to display in Streamlit
-            buf = io.BytesIO()
-            image.save(buf, format='PNG')
-            byte_im = buf.getvalue()
-            st.image(byte_im, use_column_width=True)
+            image = smiles_to_image(smiles_string)
+            if image:
+                st.image(image, use_column_width=True)
+            else:
+                st.error("Could not generate the image for this chemical.")
         else:
             st.error("Could not find the chemical. Please try a different name.")
 
