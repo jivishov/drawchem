@@ -1,7 +1,9 @@
 import streamlit as st
 import pubchempy as pcp
 from rdkit import Chem
-from rdkit.Chem import Draw
+from rdkit.Chem import rdMolDraw2D
+from io import BytesIO
+import base64
 
 def name_to_smiles(name):
     try:
@@ -12,7 +14,11 @@ def name_to_smiles(name):
 
 def draw_molecule(smiles):
     molecule = Chem.MolFromSmiles(smiles)
-    return Draw.MolToImage(molecule)
+    drawer = rdMolDraw2D.MolDraw2DSVG(300, 300)
+    drawer.DrawMolecule(molecule)
+    drawer.FinishDrawing()
+    svg = drawer.GetDrawingText()
+    return svg.replace('svg:', '')
 
 def main():
     st.title('Chemical Structure Drawer from Name')
@@ -22,8 +28,8 @@ def main():
     if chemical_name:
         smiles_string = name_to_smiles(chemical_name)
         if smiles_string:
-            image = draw_molecule(smiles_string)
-            st.image(image)
+            svg = draw_molecule(smiles_string)
+            st.image(svg, use_column_width=True)
         else:
             st.error("Could not find the chemical. Please try a different name.")
 
