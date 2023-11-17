@@ -1,4 +1,2 @@
-libxrender1 
-libxext6
 pubchempy
 rdkit
