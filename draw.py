@@ -1,31 +1,36 @@
 import streamlit as st
+from streamlit_ketcher import st_ketcher
 import pubchempy as pcp
-from rdkit import Chem
-from rdkit.Chem import Draw
 
-def name_to_smiles(name):
+def get_smiles_from_name(name):
     try:
         compound = pcp.get_compounds(name, 'name')[0]
         return compound.isomeric_smiles
     except:
         return None
 
-def draw_molecule(smiles):
-    molecule = Chem.MolFromSmiles(smiles)
-    return Draw.MolToImage(molecule)
-
 def main():
-    st.title('Chemical Structure Drawer from Name')
+    st.title("Chemical Structure Editor with User Prompts")
 
-    chemical_name = st.text_input("Enter a chemical name:", "")
+    # User input for chemical name
+    chemical_name = st.text_input("Enter a chemical name or SMILES string:")
 
     if chemical_name:
-        smiles_string = name_to_smiles(chemical_name)
-        if smiles_string:
-            image = draw_molecule(smiles_string)
-            st.image(image)
-        else:
-            st.error("Could not find the chemical. Please try a different name.")
+        # Attempt to convert name to SMILES, otherwise use the input as-is
+        smiles = get_smiles_from_name(chemical_name) or chemical_name
+
+        st.write("Draw the structure for: ", smiles)
+
+    # Ketcher component
+    drawn_smiles, molblock = st_ketcher(height=400)
+
+    if drawn_smiles:
+        st.text("Drawn SMILES string:")
+        st.write(drawn_smiles)
+
+    if molblock:
+        st.text("MolBlock:")
+        st.write(molblock)
 
 if __name__ == "__main__":
     main()
